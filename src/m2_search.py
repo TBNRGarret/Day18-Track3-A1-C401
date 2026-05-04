@@ -100,7 +100,7 @@ class DenseSearch:
 
     def index(self, chunks: list[dict], collection: str = COLLECTION_NAME) -> None:
         """Index chunks into Qdrant."""
-        # TODO: Implement dense indexing
+        # XONG: Implement dense indexing
         # 1. from qdrant_client.models import Distance, VectorParams, PointStruct
         # 2. self.client.recreate_collection(collection, VectorParams(size=EMBEDDING_DIM, distance=Distance.COSINE))
         # 3. texts = [c["text"] for c in chunks]
@@ -126,7 +126,7 @@ class DenseSearch:
 
     def search(self, query: str, top_k: int = DENSE_TOP_K, collection: str = COLLECTION_NAME) -> list[SearchResult]:
         """Search using dense vectors."""
-        # TODO: Implement dense search
+        # XONG: Implement dense search
         # 1. query_vector = self._get_encoder().encode(query).tolist()
         # 2. hits = self.client.search(collection, query_vector, limit=top_k)
         # 3. Return [SearchResult(text=hit.payload["text"], score=hit.score, metadata=hit.payload, method="dense")]

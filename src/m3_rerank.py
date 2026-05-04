@@ -24,7 +24,7 @@ class CrossEncoderReranker:
 
     def _load_model(self):
         if self._model is None:
-            # TODO: Load cross-encoder model
+            # XONG: Load cross-encoder model
             # Option A: from FlagEmbedding import FlagReranker
             #           self._model = FlagReranker(self.model_name, use_fp16=True)
             # Option B: from sentence_transformers import CrossEncoder
@@ -41,7 +41,7 @@ class CrossEncoderReranker:
 
     def rerank(self, query: str, documents: list[dict], top_k: int = RERANK_TOP_K) -> list[RerankResult]:
         """Rerank documents: top-20 → top-k."""
-        # TODO: Implement reranking
+        # XONG: Implement reranking
         # 1. model = self._load_model()
         # 2. pairs = [(query, doc["text"]) for doc in documents]
         # 3. scores = model.compute_score(pairs)  # FlagReranker
@@ -153,7 +153,7 @@ class FlashrankReranker:
 
 def benchmark_reranker(reranker, query: str, documents: list[dict], n_runs: int = 5) -> dict:
     """Benchmark latency over n_runs."""
-    # TODO: Implement benchmark
+    # XONG: Implement benchmark
     # 1. times = []
     # 2. for _ in range(n_runs):
     #      start = time.perf_counter()

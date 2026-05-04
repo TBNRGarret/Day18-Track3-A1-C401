@@ -1,3 +1,14 @@
 [
-  {"question": "hihi cả nhà tự tạo testset bằng cơm nhé", "ground_truth": "Không kịp tạo luôn"},
+  {
+    "question": "Nhân viên thử việc có được nghỉ phép năm không?",
+    "ground_truth": "Nhân viên thử việc chưa được tính phép năm, nếu nghỉ sẽ bị trừ lương."
+  },
+  {
+    "question": "Hạn mức bảo hiểm nội trú là bao nhiêu?",
+    "ground_truth": "Hạn mức bảo hiểm nội trú là 500 triệu VNĐ/năm."
+  },
+  {
+    "question": "Trợ cấp ăn trưa được tính như thế nào?",
+    "ground_truth": "Công ty hỗ trợ 50,000 VNĐ cho mỗi ngày làm việc thực tế."
+  }
 ]

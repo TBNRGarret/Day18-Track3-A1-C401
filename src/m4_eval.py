@@ -28,40 +28,92 @@ def load_test_set(path: str = TEST_SET_PATH) -> list[dict]:
 def evaluate_ragas(questions: list[str], answers: list[str],
                    contexts: list[list[str]], ground_truths: list[str]) -> dict:
     """Run RAGAS evaluation."""
-    # TODO: Implement RAGAS evaluation
-    # 1. from ragas import evaluate
-    #    from ragas.metrics import faithfulness, answer_relevancy, context_precision, context_recall
-    #    from datasets import Dataset
-    # 2. dataset = Dataset.from_dict({
-    #        "question": questions, "answer": answers,
-    #        "contexts": contexts, "ground_truth": ground_truths,
-    #    })
-    # 3. result = evaluate(dataset, metrics=[faithfulness, answer_relevancy,
-    #                                        context_precision, context_recall])
-    # 4. df = result.to_pandas()
-    # 5. per_question = [EvalResult(question=row.question, ...) for _, row in df.iterrows()]
-    # 6. Return {"faithfulness": float, "answer_relevancy": float,
-    #            "context_precision": float, "context_recall": float,
-    #            "per_question": per_question}
-    return {"faithfulness": 0.0, "answer_relevancy": 0.0,
-            "context_precision": 0.0, "context_recall": 0.0, "per_question": []}
+    from ragas import evaluate
+    from ragas.metrics import faithfulness, answer_relevancy, context_precision, context_recall
+    from datasets import Dataset
+
+    dataset = Dataset.from_dict({
+        "question": questions,
+        "answer": answers,
+        "contexts": contexts,
+        "ground_truth": ground_truths,
+    })
+
+    result = evaluate(dataset, metrics=[faithfulness, answer_relevancy, context_precision, context_recall])
+    df = result.to_pandas()
+    
+    per_question = []
+    for _, row in df.iterrows():
+        per_question.append(EvalResult(
+            question=row.get("question", ""),
+            answer=row.get("answer", ""),
+            contexts=row.get("contexts", []),
+            ground_truth=row.get("ground_truth", ""),
+            faithfulness=row.get("faithfulness", 0.0),
+            answer_relevancy=row.get("answer_relevancy", 0.0),
+            context_precision=row.get("context_precision", 0.0),
+            context_recall=row.get("context_recall", 0.0)
+        ))
+
+    return {
+        "faithfulness": result.get("faithfulness", 0.0),
+        "answer_relevancy": result.get("answer_relevancy", 0.0),
+        "context_precision": result.get("context_precision", 0.0),
+        "context_recall": result.get("context_recall", 0.0),
+        "per_question": per_question
+    }
 
 
 def failure_analysis(eval_results: list[EvalResult], bottom_n: int = 10) -> list[dict]:
     """Analyze bottom-N worst questions using Diagnostic Tree."""
-    # TODO: Implement failure analysis
-    # 1. For each result, avg_score = mean(faithfulness, answer_relevancy, context_precision, context_recall)
-    # 2. Sort by avg_score ascending → take bottom_n
-    # 3. For each failed question:
-    #    worst_metric = metric with lowest score
-    #    Map to diagnosis:
-    #      faithfulness < 0.85     → diagnosis="LLM hallucinating", fix="Tighten prompt, lower temperature"
-    #      context_recall < 0.75   → diagnosis="Missing relevant chunks", fix="Improve chunking or add BM25"
-    #      context_precision < 0.75 → diagnosis="Too many irrelevant chunks", fix="Add reranking or metadata filter"
-    #      answer_relevancy < 0.80 → diagnosis="Answer doesn't match question", fix="Improve prompt template"
-    # 4. Return [{"question": str, "worst_metric": str, "score": float,
-    #             "diagnosis": str, "suggested_fix": str}]
-    return []
+    failed = []
+    for res in eval_results:
+        # Handle nan values gracefully
+        f = res.faithfulness if str(res.faithfulness) != 'nan' else 0.0
+        ar = res.answer_relevancy if str(res.answer_relevancy) != 'nan' else 0.0
+        cp = res.context_precision if str(res.context_precision) != 'nan' else 0.0
+        cr = res.context_recall if str(res.context_recall) != 'nan' else 0.0
+        
+        avg_score = (f + ar + cp + cr) / 4.0
+        
+        metrics = {
+            "faithfulness": f,
+            "answer_relevancy": ar,
+            "context_precision": cp,
+            "context_recall": cr
+        }
+        
+        worst_metric_name = min(metrics, key=metrics.get)
+        worst_score = metrics[worst_metric_name]
+        
+        diagnosis = "Needs investigation"
+        suggested_fix = "Manual review"
+        
+        if worst_metric_name == "faithfulness" and worst_score < 0.85:
+            diagnosis = "LLM hallucinating"
+            suggested_fix = "Tighten prompt, lower temperature"
+        elif worst_metric_name == "context_recall" and worst_score < 0.75:
+            diagnosis = "Missing relevant chunks"
+            suggested_fix = "Improve chunking or add BM25"
+        elif worst_metric_name == "context_precision" and worst_score < 0.75:
+            diagnosis = "Too many irrelevant chunks"
+            suggested_fix = "Add reranking or metadata filter"
+        elif worst_metric_name == "answer_relevancy" and worst_score < 0.80:
+            diagnosis = "Answer doesn't match question"
+            suggested_fix = "Improve prompt template"
+            
+        failed.append({
+            "question": res.question,
+            "worst_metric": worst_metric_name,
+            "score": worst_score,
+            "avg_score": avg_score,
+            "diagnosis": diagnosis,
+            "suggested_fix": suggested_fix
+        })
+        
+    failed.sort(key=lambda x: x["avg_score"])
+    
+    return failed[:bottom_n]
 
 
 def save_report(results: dict, failures: list[dict], path: str = "ragas_report.json"):

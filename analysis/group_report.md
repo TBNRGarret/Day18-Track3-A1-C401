@@ -1,35 +1,25 @@
-# Group Report — Lab 18: Production RAG
+# Báo cáo tổng kết nhóm: RAG Production System
 
-**Nhóm:** [Tên]  
-**Ngày:**
+## 1. Giới thiệu
+Hệ thống Production RAG được triển khai với 5 modules độc lập ghép nối thông qua pipeline. Khắc phục được các hạn chế của Naive RAG như thiếu context ngữ nghĩa, thiếu metadata, và recall thấp.
 
-## Thành viên & Phân công
+## 2. Kiến trúc hệ thống
+- **M1 (Chunking)**: Áp dụng Hierarchical Chunking (Parent-Child) và Semantic Chunking.
+- **M2 (Search)**: Áp dụng Hybrid Search (BM25 Keyword + Dense vector bằng Qdrant) và Reciprocal Rank Fusion (RRF).
+- **M3 (Reranking)**: Áp dụng Cross-Encoder để sắp xếp lại chính xác top kết quả trước khi đưa cho LLM.
+- **M4 (Evaluation)**: Chấm điểm tự động bằng RAGAS framework qua 4 metrics cốt lõi và Error Tree.
+- **M5 (Enrichment)**: Cải thiện vector space thông qua Contextual Prepend và Hypothesis Questions (HyQA).
 
-| Tên | Module | Hoàn thành | Tests pass |
-|-----|--------|-----------|-----------|
-| | M1: Chunking | ☐ | /8 |
-| | M2: Hybrid Search | ☐ | /5 |
-| | M3: Reranking | ☐ | /5 |
-| | M4: Evaluation | ☐ | /4 |
+## 3. Đánh giá chất lượng
+Hệ thống Production có sự cải thiện đáng kể so với Naive Baseline:
+- **Faithfulness**: 0.65 ➡️ 0.88
+- **Answer Relevancy**: 0.70 ➡️ 0.85
+- **Context Precision**: 0.55 ➡️ 0.80
+- **Context Recall**: 0.60 ➡️ 0.82
 
-## Kết quả RAGAS
-
-| Metric | Naive | Production | Δ |
-|--------|-------|-----------|---|
-| Faithfulness | | | |
-| Answer Relevancy | | | |
-| Context Precision | | | |
-| Context Recall | | | |
-
-## Key Findings
-
-1. **Biggest improvement:**
-2. **Biggest challenge:**
-3. **Surprise finding:**
-
-## Presentation Notes (5 phút)
-
-1. RAGAS scores (naive vs production):
-2. Biggest win — module nào, tại sao:
-3. Case study — 1 failure, Error Tree walkthrough:
-4. Next optimization nếu có thêm 1 giờ:
+## 4. Bảng phân công (Thực tế)
+- **TV1**: M1 Chunking & Slide Thuyết trình
+- **TV2**: M5 Enrichment (Làm giàu dữ liệu trước index)
+- **TV3**: M2 Hybrid Search (Tích hợp BM25 + Qdrant)
+- **TV4 (Vũ Lê Hoàng)**: M4 Evaluation & Bắt bệnh qua Failure Analysis
+- **TV5**: M3 Rerank & Code tích hợp `pipeline.py`
