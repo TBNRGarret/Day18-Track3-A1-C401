@@ -6,7 +6,7 @@ from dotenv import load_dotenv
 load_dotenv()
 
 # --- API Keys ---
-OPENAI_API_KEY = os.getenv("OPENAI_API_KEY", "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")
+OPENAI_API_KEY = os.getenv("OPENAI_API_KEY", "")
 COHERE_API_KEY = os.getenv("COHERE_API_KEY", "")
 
 # --- Qdrant ---
