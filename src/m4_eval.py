@@ -4,7 +4,7 @@ import os, sys, json
 from dataclasses import dataclass
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-from config import TEST_SET_PATH
+from config import EMBEDDING_MODEL, TEST_SET_PATH
 
 
 @dataclass
@@ -25,12 +25,33 @@ def load_test_set(path: str = TEST_SET_PATH) -> list[dict]:
         return json.load(f)
 
 
-def evaluate_ragas(questions: list[str], answers: list[str],
-                   contexts: list[list[str]], ground_truths: list[str]) -> dict:
-    """Run RAGAS evaluation."""
-    from ragas import evaluate
-    from ragas.metrics import faithfulness, answer_relevancy, context_precision, context_recall
+def _metric_float(v) -> float:
+    try:
+        import math
+
+        x = float(v)
+        return 0.0 if math.isnan(x) else x
+    except (TypeError, ValueError):
+        return 0.0
+
+
+def evaluate_ragas(
+    questions: list[str],
+    answers: list[str],
+    contexts: list[list[str]],
+    ground_truths: list[str],
+    *,
+    _embeddings=None,
+    _evaluate_fn=None,
+) -> dict:
+    """Run RAGAS evaluation.
+
+    _embeddings / _evaluate_fn: chỉ dùng trong unit test (tránh tải bge-m3 + gọi API).
+    """
     from datasets import Dataset
+    from langchain_community.embeddings import HuggingFaceEmbeddings
+    from ragas import evaluate as ragas_evaluate
+    from ragas.metrics import faithfulness, answer_relevancy, context_precision, context_recall
 
     dataset = Dataset.from_dict({
         "question": questions,
@@ -39,28 +60,51 @@ def evaluate_ragas(questions: list[str], answers: list[str],
         "ground_truth": ground_truths,
     })
 
-    result = evaluate(dataset, metrics=[faithfulness, answer_relevancy, context_precision, context_recall])
+    metrics = [faithfulness, answer_relevancy, context_precision, context_recall]
+    # Ragas ≥0.4 mặc định có thể dùng OpenAI embeddings “modern” không có embed_query —
+    # answer_relevancy lại gọi embed_query/embed_documents (kiểu LangChain).
+    # Dùng cùng encoder với retrieval (EMBEDDING_MODEL) trong lab.
+    hf_embeddings = _embeddings
+    if hf_embeddings is None:
+        hf_embeddings = HuggingFaceEmbeddings(model_name=EMBEDDING_MODEL)
+
+    eval_fn = ragas_evaluate if _evaluate_fn is None else _evaluate_fn
+
+    result = eval_fn(
+        dataset,
+        metrics=metrics,
+        embeddings=hf_embeddings,
+    )
     df = result.to_pandas()
-    
-    per_question = []
+
+    agg_cols = ["faithfulness", "answer_relevancy", "context_precision", "context_recall"]
+    aggregate: dict[str, float] = {}
+    for m in agg_cols:
+        if m in df.columns:
+            aggregate[m] = float(df[m].astype("float64").mean(skipna=True))
+        else:
+            aggregate[m] = 0.0
+
+    per_question: list[EvalResult] = []
     for _, row in df.iterrows():
+        contexts_val = row.get("contexts", [])
+        if not isinstance(contexts_val, list):
+            contexts_val = []
+
         per_question.append(EvalResult(
-            question=row.get("question", ""),
-            answer=row.get("answer", ""),
-            contexts=row.get("contexts", []),
-            ground_truth=row.get("ground_truth", ""),
-            faithfulness=row.get("faithfulness", 0.0),
-            answer_relevancy=row.get("answer_relevancy", 0.0),
-            context_precision=row.get("context_precision", 0.0),
-            context_recall=row.get("context_recall", 0.0)
+            question=str(row.get("question", "")),
+            answer=str(row.get("answer", "")),
+            contexts=[str(x) for x in contexts_val],
+            ground_truth=str(row.get("ground_truth", "")),
+            faithfulness=_metric_float(row.get("faithfulness", 0.0)),
+            answer_relevancy=_metric_float(row.get("answer_relevancy", 0.0)),
+            context_precision=_metric_float(row.get("context_precision", 0.0)),
+            context_recall=_metric_float(row.get("context_recall", 0.0)),
         ))
 
     return {
-        "faithfulness": result.get("faithfulness", 0.0),
-        "answer_relevancy": result.get("answer_relevancy", 0.0),
-        "context_precision": result.get("context_precision", 0.0),
-        "context_recall": result.get("context_recall", 0.0),
-        "per_question": per_question
+        **aggregate,
+        "per_question": per_question,
     }
 
 

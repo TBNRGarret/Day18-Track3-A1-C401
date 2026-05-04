@@ -128,15 +128,16 @@ class DenseSearch:
         """Search using dense vectors."""
         # XONG: Implement dense search
         # 1. query_vector = self._get_encoder().encode(query).tolist()
-        # 2. hits = self.client.search(collection, query_vector, limit=top_k)
+        # 2. resp = self.client.query_points(collection_name=collection, query=query_vector, limit=top_k); hits = resp.points
         # 3. Return [SearchResult(text=hit.payload["text"], score=hit.score, metadata=hit.payload, method="dense")]
         qv = self._get_encoder().encode(query)
         query_vector = qv.tolist() if hasattr(qv, "tolist") else list(qv)
-        hits = self.client.search(
+        resp = self.client.query_points(
             collection_name=collection,
-            query_vector=query_vector,
+            query=query_vector,
             limit=top_k,
         )
+        hits = resp.points
         out: list[SearchResult] = []
         for hit in hits:
             pl = dict(hit.payload or {})

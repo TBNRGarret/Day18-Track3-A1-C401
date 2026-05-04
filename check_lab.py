@@ -52,27 +52,75 @@ def check_todos() -> int:
 
 
 def run_tests() -> tuple[int, int]:
-    """Run pytest and return (passed, total)."""
+    """Run pytest and return (passed, total). total = passed + failed (bỏ qua skipped)."""
+    import re
+
     try:
+        # Ghi đè addopts trong pytest.ini (vd. -v) để dòng tóm tắt không bị bọc trong "====".
         result = subprocess.run(
-            [sys.executable, "-m", "pytest", "tests/", "-v", "--tb=no", "-q"],
-            capture_output=True, text=True, timeout=120,
+            [
+                sys.executable,
+                "-m",
+                "pytest",
+                "tests/",
+                "--tb=no",
+                "-q",
+                "-o",
+                "addopts=",
+            ],
+            capture_output=True,
+            text=True,
+            timeout=600,
         )
-        lines = result.stdout.strip().split("\n")
-        summary = lines[-1] if lines else ""
-        # Parse "X passed, Y failed" or "X passed"
-        passed = total = 0
-        for part in summary.split(","):
-            part = part.strip()
-            if "passed" in part:
-                passed = int(part.split()[0])
-                total += passed
-            if "failed" in part:
-                total += int(part.split()[0])
-        return passed, total
     except Exception as e:
         print(f"  ⚠️  pytest error: {e}")
         return 0, 0
+
+    out = (result.stdout or "") + "\n" + (result.stderr or "")
+
+    def parse_summary(text: str) -> tuple[int, int]:
+        passed = failed = 0
+        for line in reversed(text.strip().split("\n")):
+            line_stripped = line.strip()
+            if not line_stripped or set(line_stripped) <= {"=", "-", "_"}:
+                continue
+            if "passed" not in line_stripped and "failed" not in line_stripped:
+                continue
+            # Bỏ qua header/tiêu đề phụ
+            if "test session starts" in line_stripped.lower():
+                continue
+            if "warnings summary" in line_stripped.lower():
+                continue
+
+            pm = re.search(r"(\d+)\s+passed", line_stripped)
+            fm = re.search(r"(\d+)\s+failed", line_stripped)
+            if pm:
+                passed = int(pm.group(1))
+            if fm:
+                failed = int(fm.group(1))
+            if pm or fm:
+                return passed, passed + failed
+        return 0, 0
+
+    passed, total = parse_summary(out)
+    if total == 0 and result.returncode != 0 and "error" in out.lower():
+        # pytest collection error / crash — không có dòng "N passed"
+        err_line = next(
+            (ln for ln in out.split("\n") if "ERROR" in ln or "ImportError" in ln),
+            "xem stdout pytest",
+        )
+        print(f"  ⚠️  pytest error: {err_line.strip()[:120]}")
+    elif total == 0 and passed == 0:
+        err_line = next(
+            (ln for ln in reversed(out.split("\n")) if ln.strip()),
+            "no output",
+        )
+        if "no tests ran" in out.lower() or "collected 0" in out.lower():
+            print("  ⚠️  pytest error: không thu thập được test nào")
+        elif err_line and err_line != "no output":
+            print(f"  ⚠️  pytest error: không parse được summary — {err_line.strip()[:100]}")
+
+    return passed, total
 
 
 def validate():

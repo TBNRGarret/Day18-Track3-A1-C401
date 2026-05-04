@@ -5,3 +5,8 @@ sentence-transformers>=2.6.0
 # Mô hình BAAI/bge-m3: đặt trong config.py (EMBEDDING_MODEL), không có package pip riêng.
 # Lần đầu SentenceTransformer tải từ Hugging Face (~2GB+) khi index/search dense.
 # Tải sẵn (tùy chọn): pip install huggingface_hub && huggingface-cli download BAAI/bge-m3
+
+# --- Evaluation (M4 naive_baseline + pipeline) ---
+ragas>=0.1.21
+datasets>=2.14.0
+langchain-community>=0.2.0
