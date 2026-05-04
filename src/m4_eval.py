@@ -76,6 +76,24 @@ def save_report(results: dict, failures: list[dict], path: str = "ragas_report.j
     print(f"Report saved to {path}")
 
 
+def save_report_with_extras(
+    results: dict,
+    failures: list[dict],
+    extras: dict,
+    path: str = "ragas_report.json",
+):
+    """Save evaluation report to JSON with optional extra fields."""
+    report = {
+        "aggregate": {k: v for k, v in results.items() if k != "per_question"},
+        "num_questions": len(results.get("per_question", [])),
+        "failures": failures,
+        **(extras or {}),
+    }
+    with open(path, "w", encoding="utf-8") as f:
+        json.dump(report, f, ensure_ascii=False, indent=2)
+    print(f"Report saved to {path}")
+
+
 if __name__ == "__main__":
     test_set = load_test_set()
     print(f"Loaded {len(test_set)} test questions")
