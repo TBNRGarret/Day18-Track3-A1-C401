@@ -1,13 +1,14 @@
 # Individual Reflection — Lab 18
 
-**(Nếu đề yêu cầu)** copy nội dung vào file `reflection_<HọTen>.md` và đổi `[Họ tên]` phía dưới cho đúng.
-
-**Tên:** Vũ Hồng Quang - 2A202600341  
+**Tên:** Vũ Hồng Quang — MSSV **2A202600341**  
+**Vai trò nhóm:** **Thành viên 3** (Retrieval Specialist) — theo **`GROUP_PLAN.md`**: M2 là module chính; phụ trách thêm **`analysis/group_report.md`** (báo cáo tổng kết nhóm).  
 **Module phụ trách:** M2 — Hybrid Search (BM25 + Dense + RRF)
 
 ---
 
-## 1. Đóng góp kỹ thuật
+## 1. Đóng góp kỹ thuật & deliverable nhóm
+
+### 1.1 Module M2
 
 - Module đã implement: **`src/m2_search.py`** — pipeline tìm kiếm hybrid cho RAG lab.
 - Các hàm/class chính đã viết:
@@ -18,6 +19,12 @@
   - `HybridSearch` — gọi BM25 + Dense rồi RRF cho top-k cuối.
   - File test bổ sung (tùy nhóm): tích hép Qdrant thật trong `tests/test_m2_dense_qdrant_integration.py`.
 - Số tests pass: **`tests/test_m2.py`** — **5/5**.
+
+### 1.2 Báo cáo nhóm (`analysis/group_report.md`)
+
+- Soạn và cập nhật **`analysis/group_report.md`**: giới thiệu pipeline production, kiến trúc M1→M5, **bảng phân công** thống nhất với reflection các thành viên.
+- **Tổng hợp số liệu RAGAS** từ `reports/naive_baseline_report.json` và `reports/ragas_report.json` (naive vs production, biên độ cải thiện).
+- Viết nhận xét định lượng/định tính (kết luận, rủi ro, **gợi ý nội dung slide** thuyết trình) và trích đường dẫn sang **`failure_analysis.md`** để đáp ứng phần B nhóm theo **`RUBRIC.md`**.
 
 ## 2. Kiến thức học được
 
@@ -49,5 +56,5 @@
 |----------|----------------|
 | Hiểu bài giảng | 4 |
 | Code quality | 4 |
-| Teamwork | 4 |
+| Teamwork | 5 |
 | Problem solving | 4 |
