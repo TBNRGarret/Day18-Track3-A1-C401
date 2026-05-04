@@ -1,0 +1,7 @@
+# --- Vector DB + dense retrieval (HybridSearch / naive_baseline) ---
+qdrant-client>=1.7.0,<3
+sentence-transformers>=2.6.0
+
+# Mô hình BAAI/bge-m3: đặt trong config.py (EMBEDDING_MODEL), không có package pip riêng.
+# Lần đầu SentenceTransformer tải từ Hugging Face (~2GB+) khi index/search dense.
+# Tải sẵn (tùy chọn): pip install huggingface_hub && huggingface-cli download BAAI/bge-m3
