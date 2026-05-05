@@ -18,7 +18,7 @@ Nhóm triển khai một pipeline RAG kiểu **production**: chunking nâng cao 
 | **Đàm Lê Văn Toàn** | 2A202600017 | M1 Chunking | Hierarchical / semantic / structure-aware chunking | `tests/test_m1.py` — **13/13** |
 | **Vũ Hồng Quang** | 2A202600341 | M2 Hybrid Search | BM25 (UndertheSea) + Dense bge-m3 + Qdrant + RRF | `tests/test_m2.py` — **5/5** |
 | **Đặng Tiến Dũng** | 2A202600024 | M3 + tích hợp pipeline | Cross-Encoder rerank, benchmark; ghép flow trong `pipeline.py` | `tests/test_m3.py` — **5/5** |
-| **Vũ Lê Hoàng** | — | M4 Evaluation | RAGAS (`evaluate_ragas`), báo lỗi / failure diagnostics | `tests/test_m4.py` — **4 passed**, 1 skip (smoke integration) |
+| **Vũ Lê Hoàng** | 2A202600342 | M4 Evaluation | RAGAS (`evaluate_ragas`), báo lỗi / failure diagnostics | `tests/test_m4.py` — **4 passed**, 1 skip (smoke integration) |
 | **Nguyễn Quang Trường** | — | M5 Enrichment | HyQA, contextual prepend, metadata extraction, pipeline enrich | `tests/test_m5.py` — **10/10** |
 
 *Bổ sung:* file tích hợp **Qdrant thật** `tests/test_m2_dense_qdrant_integration.py` (marker **integration**) — chỉ khi có Qdrant local.
